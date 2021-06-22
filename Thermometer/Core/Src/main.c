@@ -94,13 +94,11 @@ int main(void)
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
-	Lcd_PortType ports[] = { LCD_D4_GPIO_Port, LCD_D5_GPIO_Port,
-			LCD_D6_GPIO_Port, LCD_D7_GPIO_Port };
+	Lcd_PortType ports[] = { LCD_D4_GPIO_Port, LCD_D5_GPIO_Port, LCD_D6_GPIO_Port, LCD_D7_GPIO_Port };
 
 	Lcd_PinType pins[] = { LCD_D4_Pin, LCD_D5_Pin, LCD_D6_Pin, LCD_D7_Pin };
 
-	Lcd_HandleTypeDef lcd = Lcd_create(ports, pins, LCD_RS_GPIO_Port,
-	LCD_RS_Pin, LCD_E_GPIO_Port, LCD_E_Pin, LCD_4_BIT_MODE);
+	Lcd_HandleTypeDef lcd = Lcd_create(ports, pins, LCD_RS_GPIO_Port, LCD_RS_Pin, LCD_E_GPIO_Port, LCD_E_Pin, LCD_4_BIT_MODE);
 
 	Lcd_string(&lcd, "Temperature:");
 
@@ -111,38 +109,19 @@ int main(void)
 	HAL_TIM_Base_Start(&htim6);
 	while (1) {
 
-	//	test(100000, LD2_GPIO_Port, LD2_Pin);
-
-
-		if (DS18B20_Initialize()) {
-			Lcd_cursor(&lcd, 0, 4);
+		float temperature=DS18B20_Read_Temperature();
+		if(temperature==0xffff)
+		{
+			Lcd_clear(&lcd);
+			Lcd_cursor(&lcd, 0, 0);
 			Lcd_string(&lcd, "TMP ERROR");
-		} else {
-			HAL_Delay(1);
-			DS18B20_Write_Byte(0xCC);
-			DS18B20_Write_Byte(0x44);
-			HAL_Delay(800);
-
-			if (DS18B20_Initialize()) {
-				Lcd_cursor(&lcd, 0, 4);
-				Lcd_string(&lcd, "TMP ERROR");
-			} else {
-				HAL_Delay(1);
-				DS18B20_Write_Byte(0xCC);
-				DS18B20_Write_Byte(0xBE);
-				uint8_t tmp1 = DS18B20_Read_Byte();
-				uint8_t tmp2 = DS18B20_Read_Byte();
-				uint16_t temperature = tmp1 | (tmp2 << 8);
-				float ftemperature = (float) temperature / 16;
-
-				Lcd_cursor(&lcd, 1, 0);
-			//	Lcd_string(&lcd, "Test");
-				Lcd_float(&lcd, ftemperature);
-			}
-
+		}else
+		{
+			Lcd_cursor(&lcd, 1, 0);
+			Lcd_float(&lcd, temperature);
 		}
 
-		HAL_Delay(3000);
+		HAL_Delay(2000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
